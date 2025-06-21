@@ -5,6 +5,7 @@ import 'package:newswatch/screens/auth/login_screen.dart';
 import 'package:newswatch/screens/auth/register_screen.dart';
 import 'package:newswatch/screens/home/home_screen.dart';
 import 'package:newswatch/screens/profile/edit_profile_screen.dart';
+import 'package:newswatch/screens/profile/my_articles_screen.dart';
 import 'package:newswatch/screens/profile/profile_screen.dart';
 
 class AppRoutes {
@@ -15,6 +16,7 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String editProfile = '/edit-profile';
   static const String articleDetail = '/article-detail';
+  static const String myArticles = '/my-articles'; // Pastikan baris ini ada
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -25,6 +27,7 @@ class AppRoutes {
       profile: (context) => const ProfileScreen(),
       editProfile: (context) => const EditProfileScreen(),
       articleDetail: (context) => const ArticleDetailScreen(),
+      myArticles: (context) => const MyArticlesScreen(),
     };
   }
 }

@@ -73,6 +73,22 @@ class ProfileScreen extends StatelessWidget {
                       () => Navigator.pushNamed(context, AppRoutes.editProfile),
                 ),
                 const Divider(height: 1, indent: 16, endIndent: 16),
+
+                // ======================================================
+                // TAMBAHKAN BAGIAN INI
+                // ======================================================
+                ListTile(
+                  leading: const Icon(LucideIcons.fileText),
+                  title: const Text('My Articles'),
+                  trailing: const Icon(LucideIcons.chevronRight),
+                  onTap: () {
+                    // Navigasi ke halaman 'My Articles' menggunakan nama rute
+                    Navigator.pushNamed(context, AppRoutes.myArticles);
+                  },
+                ),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                // ======================================================
+
                 SwitchListTile(
                   secondary: const Icon(LucideIcons.moon),
                   title: const Text('Dark Mode'),

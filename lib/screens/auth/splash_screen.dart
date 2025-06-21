@@ -15,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), _checkAuthAndNavigate);
+    Timer(const Duration(seconds: 4), _checkAuthAndNavigate);
   }
 
   Future<void> _checkAuthAndNavigate() async {
@@ -40,7 +40,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Ganti kotak dengan gambar logo
             SizedBox(
               width: 100,
               height: 100,

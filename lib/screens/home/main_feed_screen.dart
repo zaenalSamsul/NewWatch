@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:newswatch/models/article.dart';
+import 'package:newswatch/providers/article_provider.dart';
 import 'package:newswatch/providers/auth_provider.dart';
-import 'package:newswatch/services/api_service.dart';
 import 'package:newswatch/widgets/article_card.dart';
 import 'package:newswatch/widgets/trending_carousel.dart';
 import 'package:provider/provider.dart';
-//import 'package:intl/intl.dart';
 
 class MainFeedScreen extends StatefulWidget {
   const MainFeedScreen({super.key});
@@ -16,36 +14,11 @@ class MainFeedScreen extends StatefulWidget {
 }
 
 class _MainFeedScreenState extends State<MainFeedScreen> {
-  final ApiService _apiService = ApiService();
-  Future<List<Article>>? _articlesFuture;
-
-  // Di dalam file: lib/screens/home/main_feed_screen.dart
-
-  final List<String> _categories = [
-    "All",
-    "Technology",
-    "Business",
-    "Politics",
-    "Sports",
-    "Health",
-  ];
+  final List<String> _categories = ["All", "Technology", "Business", "Politics", "Sports", "Health"];
   String _selectedCategory = "All";
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchArticles();
-  }
-
-  void _fetchArticles() {
-    setState(() {
-      _articlesFuture = _apiService.getAllArticles(category: _selectedCategory);
-    });
-  }
-
   Future<void> _onRefresh() async {
-    // Cukup panggil _fetchArticles untuk me-refresh dengan kategori yang sedang dipilih
-    _fetchArticles();
+    await Provider.of<ArticleProvider>(context, listen: false).fetchAll();
   }
 
   @override
@@ -57,28 +30,23 @@ class _MainFeedScreenState extends State<MainFeedScreen> {
       appBar: AppBar(
         leadingWidth: 0,
         title: Column(
-          // Mengubah Row menjadi Column untuk menumpuk elemen secara vertikal
-          crossAxisAlignment:
-              CrossAxisAlignment.start, // Sejajarkan konten ke awal (kiri)
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              // Row asli untuk logo dan nama aplikasi
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
                   padding: const EdgeInsets.only(left: 8.0),
                   child: Image.asset(
-                    'assets/images/logo.png', // Ganti dengan path yang benar ke aset logo Anda
+                    'assets/images/logo.png',
                     width: 40,
                     height: 40,
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
                   'NewsWatch',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -115,16 +83,12 @@ class _MainFeedScreenState extends State<MainFeedScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
                 "Trending",
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 16),
             const TrendingCarousel(),
             const SizedBox(height: 24),
-
-            // Filter Kategori
             SizedBox(
               height: 40,
               child: ListView.builder(
@@ -141,8 +105,9 @@ class _MainFeedScreenState extends State<MainFeedScreen> {
                       selected: isSelected,
                       onSelected: (selected) {
                         if (selected) {
-                          _selectedCategory = category;
-                          _fetchArticles();
+                          setState(() {
+                             _selectedCategory = category;
+                          });
                         }
                       },
                       selectedColor: theme.primaryColor,
@@ -151,10 +116,7 @@ class _MainFeedScreenState extends State<MainFeedScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                       side: BorderSide(
-                        color:
-                            isSelected
-                                ? Colors.transparent
-                                : Colors.grey.shade300,
+                        color: isSelected ? Colors.transparent : Colors.grey.shade300,
                       ),
                     ),
                   );
@@ -162,39 +124,21 @@ class _MainFeedScreenState extends State<MainFeedScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Daftar Artikel Terbaru
-            FutureBuilder<List<Article>>(
-              future: _articlesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            Consumer<ArticleProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading && provider.articles.isEmpty) {
                   return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      "Error: ${snapshot.error.toString().replaceFirst("Exception: ", "")}",
-                    ),
-                  );
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text("No articles found in this category."),
+                    child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator()),
                   );
                 }
 
-                final articles = snapshot.data!;
+                final articles = _selectedCategory == 'All'
+                    ? provider.articles
+                    : provider.articles.where((a) => a.category == _selectedCategory).toList();
 
-                // ================================================================
-                // PERBAIKAN UTAMA DI SINI: Urutkan daftar artikel
-                // Kita urutkan berdasarkan `createdAt` dari yang terbaru (descending)
-                articles.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-                // ================================================================
+                if (articles.isEmpty) {
+                  return const Center(child: Text("No articles found in this category."));
+                }
 
                 return ListView.builder(
                   shrinkWrap: true,
