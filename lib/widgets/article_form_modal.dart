@@ -67,22 +67,27 @@ class _ArticleFormModalState extends State<ArticleFormModal> {
       };
 
       try {
-        // Simpan referensi Navigator dan ScaffoldMessenger sebelum async call
         final navigator = Navigator.of(context);
         final messenger = ScaffoldMessenger.of(context);
 
         if (widget.article == null) {
           // Mode Create
           await articleProvider.createArticle(articleData);
-          navigator.pop(); // Tutup modal
-          _showSuccessDialog();
+          navigator.pop(); // Tutup modal dulu
+          // Tampilkan notifikasi di halaman sebelumnya
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Artikel baru berhasil dibuat!'),
+              backgroundColor: Colors.green,
+            ),
+          );
         } else {
-          // Mode Update
+          // Mode Update (kode Anda sudah benar, tidak perlu diubah)
           await articleProvider.updateArticle(widget.article!.id, articleData);
           navigator.pop(); // Tutup modal
           messenger.showSnackBar(
             const SnackBar(
-              content: Text('Article updated successfully!'),
+              content: Text('Artikel berhasil diperbarui!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -96,31 +101,6 @@ class _ArticleFormModalState extends State<ArticleFormModal> {
         );
       }
     }
-  }
-
-  Future<void> _showSuccessDialog() async {
-    if (!mounted) return;
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          icon: const Icon(LucideIcons.checkCircle2,
-              color: Colors.green, size: 48),
-          title: const Text('Berhasil!',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          content: const Text('Artikel baru telah berhasil dibuat.'),
-          actions: [
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.of(ctx).pop(),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override

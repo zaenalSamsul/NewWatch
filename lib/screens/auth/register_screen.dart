@@ -22,25 +22,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final ApiService _apiService = ApiService();
 
-  Future<void> _handleRegister() async {
+   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
-    // Di layar register, kita panggil langsung ApiService karena tidak perlu menyimpan state jika gagal
-    // Namun, setelah berhasil, kita panggil AuthProvider untuk login dan menyimpan sesi
     final apiService = ApiService();
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // Simpan referensi ScaffoldMessenger sebelum async call
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
     try {
-      // 1. Panggil API untuk mendaftar
       await apiService.register(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         name: _nameController.text.trim(),
       );
 
-      // 2. Jika register berhasil, langsung login untuk mendapatkan token & menyimpan sesi
       if (mounted) {
         await authProvider.login(
           _emailController.text.trim(),
@@ -48,15 +46,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       }
 
-      // 3. Navigasi ke home
+      // TAMBAHKAN BLOK INI UNTUK NOTIFIKASI SUKSES
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Registrasi berhasil! Selamat bergabung di NewsWatch, ${authProvider.user?.name}.'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      // ===============================================
+
       if (mounted) {
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+        // Navigasi setelah jeda singkat
+        await Future.delayed(const Duration(seconds: 1));
+        navigator.pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        // Kode notifikasi error Anda sudah bagus
+        messenger.showSnackBar(
           SnackBar(
             content: Text(error.toString().replaceFirst("Exception: ", "")),
             backgroundColor: Colors.red,

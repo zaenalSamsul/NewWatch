@@ -19,38 +19,45 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   Future<void> _handleLogin() async {
-    // Cek validasi form
     if (!_formKey.currentState!.validate()) return;
-
-    // Tampilkan loading indicator
     setState(() => _isLoading = true);
 
-    // Panggil AuthProvider
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // Simpan referensi ScaffoldMessenger sebelum async call
+    final messenger = ScaffoldMessenger.of(context); 
+    final navigator = Navigator.of(context);
 
     try {
-      // Panggil method login dari provider
       await authProvider.login(
-        _emailController.text.trim(), // Gunakan .trim() untuk menghapus spasi
+        _emailController.text.trim(),
         _passwordController.text.trim(),
       );
 
-      // Jika berhasil dan widget masih ada di tree, navigasi ke home
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-      }
+      // TAMBAHKAN BLOK INI UNTUK NOTIFIKASI SUKSES
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Login berhasil! Selamat datang kembali, ${authProvider.user?.name}.'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      // ===============================================
+
+      // Navigasi setelah jeda singkat agar user bisa melihat notifikasi
+      await Future.delayed(const Duration(seconds: 1));
+      navigator.pushReplacementNamed(AppRoutes.home);
+
     } catch (error) {
-      // Jika gagal, tampilkan pesan error dari API menggunakan SnackBar
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
+            // Kode notifikasi error Anda sudah bagus, tidak perlu diubah
             content: Text(error.toString().replaceFirst("Exception: ", "")),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
-      // Apapun hasilnya, hentikan loading indicator
       if (mounted) {
         setState(() => _isLoading = false);
       }
